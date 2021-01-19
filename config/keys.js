@@ -1,3 +1,3 @@
 export default {
-    mongoURI: "mongodb://localhost/koa-restful-api"
+  mongoURI: 'mongodb://localhost/koa-restful-api',
 }

@@ -2,3 +2,8 @@
 2. nodemon是一个监控文本改动自动重启服务器的组件，需要npm install nodemon -s 安装
 3. mongodb的云数据库产品mlab，本例未使用。npm  install mongoose模块
 4. npm install koa-bodyparser
+5. npm install bcrypt或者bcryptjs
+6. npm install gravatar
+7. npm install jsonwebtoken
+8. npm install base64url与base64有所不同，Base64 有三个字符+、/和=，在 URL 里面有特殊含义，所以要被替换掉：=被省略、+替换成-，/替换成_ 。这就是 Base64URL 算法
+9. npm install koa-passport  &&  passport-jwt

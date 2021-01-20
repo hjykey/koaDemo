@@ -1,14 +1,11 @@
 import Router from 'koa-router'
-import bcrypt from 'bcrypt'
 import gravatar from 'gravatar'
-
-const router = new Router()
-
+import passport from 'koa-passport'
 //从数据模板引入
 import user from '../../models/user.js'
-
-import jwt from '../../config/jwt.js'
-
+import jwt from '../../modules/jwt.js'
+import { createHash, checkPassword } from '../../modules/bcrypt.js'
+const router = new Router()
 /**
  * @route GET api/users/test
  * @desc 测试接口地址
@@ -18,7 +15,6 @@ router.get('/test', async (ctx) => {
   ctx.status = 200
   ctx.body = { msg: 'users works..' }
 })
-
 /**
  * @route post api/users/register
  * @desc 用户注册
@@ -45,14 +41,7 @@ router.post('/register', async (ctx) => {
       password: ctx.request.body.password,
     })
     //密码加盐
-    await new Promise((resolve, reject) => {
-      bcrypt.hash(newUser.password, 10, (err, hash) => {
-        if (err) reject(err)
-        // Store hash in your password DB.
-        newUser.password = hash
-        resolve(newUser)
-      })
-    })
+    newUser.password = await createHash(ctx.request.body.password)
     //  存储到数据库
     await newUser
       .save()
@@ -60,7 +49,6 @@ router.post('/register', async (ctx) => {
         ctx.status = 201
       })
       .catch((err) => console.log(err))
-    console.log(newUser)
   }
 })
 /**
@@ -76,11 +64,11 @@ router.post('/login', async (ctx) => {
     ctx.body = { msg: '用户不存在' }
   } else {
     // console.log(findResult)
-    const match = await bcrypt.compare(
+    const match = await checkPassword(
       ctx.request.body.password,
       findResult[0].password
     )
-    console.log(match)
+    // console.log(match)
     if (match) {
       // 返回token
       const payload = {
@@ -102,11 +90,16 @@ router.post('/login', async (ctx) => {
 })
 /**
  * @route get api/users/current
- * @desc 用户信息
+ * @desc 用户信息,登录后显示
  * @access 接口是私密的，token验证
  */
-router.get('/current', 'Token验证', async (ctx) => {
-  ctx.body = { sucess: true }
-})
+router.get(
+  '/current',
+  passport.authenticate('jwt', { session: false }),
+  async (ctx) => {
+    console.log(ctx.state.user)
+    ctx.body = { sucess: true }
+  }
+)
 
 export default router.routes()

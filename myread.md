@@ -17,6 +17,7 @@
 16. koa-views 模板呈现中间件
 17. hai mocha 测试使用
 18. koa-static-cache 文件缓存
+19. koa-session||koa-session-minimal 处理 `session`
 
 ----
 # CommonJS 和ES6加载的区别

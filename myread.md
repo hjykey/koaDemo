@@ -18,6 +18,7 @@
 17. hai mocha 测试使用
 18. koa-static-cache 文件缓存
 19. koa-session||koa-session-minimal 处理 `session`
+20. npm install validator 密码邮箱等等的验证
 
 ----
 # CommonJS 和ES6加载的区别

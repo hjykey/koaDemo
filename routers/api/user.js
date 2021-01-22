@@ -71,6 +71,7 @@ router.post('/register', async (ctx) => {
  * @access 接口是公开的
  */
 router.post('/login', async (ctx) => {
+  // console.log(ctx.session);
   // 验证表单数据
   const { errors, isValid } = validateLogin(ctx.request.body)
   if (!isValid) {

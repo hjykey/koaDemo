@@ -3,6 +3,7 @@ import Router from 'koa-router'
 import mongoose from 'mongoose'
 import config from 'config'
 import user from './routers/api/user.js'
+import profile from './routers/api/profile.js'
 import bodyparser from 'koa-bodyparser'
 import passport from 'koa-passport'
 import session from 'koa-session'
@@ -10,13 +11,14 @@ import cors from './util/cors.js'
 import passportMidware from './util/passport.js'
 //实例化s
 const app = new koa()
-const router = new Router()
 
+const router = new Router()
 router.get('/', async (ctx) => {
   ctx.body = 'this a koa interfaces！'
 })
 //配置路由器地址，在localhost:5000/api/users下找
-router.use('/api/users', user)
+router.use('/api/users', user, profile)
+
 app.use(bodyparser())
 
 // 连接数据库，URL以mongodb:// + [用户名:密码@] +数据库地址[:端口] + 数据库名。（默认端口27017）
@@ -32,6 +34,7 @@ mongoose
   .catch((err) => {
     console.log(err)
   })
+
 // 跨域
 app.use(cors())
 
@@ -63,7 +66,7 @@ passportMidware(passport)
 //等同于app.use(someMiddleware).use(someOtherMiddleware).listen(3000)
 app.use(router.routes()).use(router.allowedMethods())
 //设置端口号
-const port = process.env.PORT || 5000
+const port = 5000
 //listen()为 new require('http'或'https').creatServer(app.callback()).listen(port)的语法糖
 app.listen(port, () => {
   console.log(`serve started on: ${port}`)

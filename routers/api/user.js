@@ -56,7 +56,7 @@ router.post('/register', async (ctx) => {
       .save()
       .then((user) => {
         ctx.status = 201
-        ctx.body = { meta: { status: 201, msg: '注册成功' }, data: null }
+        ctx.body = { meta: { status: 201, msg: '注册成功' }, data: user }
       })
       .catch((err) => {
         console.log(err)

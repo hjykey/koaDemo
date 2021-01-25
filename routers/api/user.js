@@ -95,8 +95,6 @@ router.post('/login', async (ctx) => {
     if (match) {
       const payload = {
         id: findResult[0]._id,
-        name: findResult[0].name,
-        avatar: findResult[0].avatar,
       }
       //   生成token ，该token 3600秒后过期
       const token = jwt.createToken(payload, 3600)
@@ -124,7 +122,7 @@ router.get(
   '/current',
   passport.authenticate('jwt', { session: false }),
   async (ctx) => {
-    console.log(ctx.state.user)
+    // console.log(ctx.state.user)
     const res = {
       meta: { status: 200, msg: '查询成功' },
       data: {

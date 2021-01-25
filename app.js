@@ -17,7 +17,8 @@ router.get('/', async (ctx) => {
   ctx.body = 'this a koa interfaces！'
 })
 //配置路由器地址，在localhost:5000/api/users下找
-router.use('/api/users', user, profile)
+router.use('/api/users', user)
+router.use('/api/profiles', profile)
 
 app.use(bodyparser())
 
@@ -27,6 +28,9 @@ mongoose
   .connect(config.get('mongoURI'), {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    // 消除警告Mongoose: `findOneAndUpdate()` and `findOneAndDelete()` without the `useFindAndModify`。。。
+    // 参考https://mongoosejs.com/docs/deprecations.html#findandmodify
+    useFindAndModify: false,
   })
   .then(() => {
     console.log('mongodb connected!')

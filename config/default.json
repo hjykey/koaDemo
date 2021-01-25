@@ -2,5 +2,5 @@
   "mongoURI": "mongodb://localhost/koa-restful-api",
   "jwt_config" : {
 		"secretOrKey":"jinwandalaohu",
-		"expiresIn":86400  
+		"expiresIn":3600
 }}

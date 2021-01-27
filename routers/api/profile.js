@@ -76,7 +76,7 @@ router.post(
     profileFields.githubusename = ctx.request.body.githubusename
       ? ctx.request.body.githubusename
       : ''
-
+    //前端传social时用JSON.stringify(object)
     profileFields.social = ctx.request.body.social
       ? JSON.parse(ctx.request.body.social)
       : {}

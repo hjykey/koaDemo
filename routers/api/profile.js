@@ -2,6 +2,7 @@ import Router from 'koa-router'
 const router = new Router()
 import profiles from '../../models/profile.js'
 import passport from 'koa-passport'
+import { validateProfile } from '../../util/validator.js'
 
 /**
  * @route get api/profiles/test
@@ -45,13 +46,19 @@ router.get(
 )
 /**
  * @route post api/profiles/
- * @desc 个人信息接口
+ * @desc 添加和编辑个人信息接口地址
  * @access 接口是私有的
  */
 router.post(
   '/',
   passport.authenticate('jwt', { session: false }),
   async (ctx) => {
+    const { errors, isValid } = validateProfile(ctx.request.body)
+    if (!isValid) {
+      ctx.status = 400
+      ctx.body = { meta: { status: 400, msg: errors }, data: null }
+      return
+    }
     const profileFields = {}
     profileFields.user = ctx.state.user.id
     profileFields.handle = ctx.request.body.handle
@@ -84,7 +91,7 @@ router.post(
     // 查询数据库
     const res = await profiles.find({ user: ctx.state.user.id })
     if (res.length > 0) {
-      // update
+      // update更新
       const profiledUpdate = await profiles.findOneAndUpdate(
         { user: ctx.state.user.id },
         { $set: profileFields },
@@ -96,7 +103,7 @@ router.post(
         data: profiledUpdate,
       }
     }
-    // 插入
+    // insert插入
     else {
       await new profiles(profileFields)
         .save()
@@ -114,4 +121,22 @@ router.post(
     }
   }
 )
+/**
+ * @route get api/profiles/handle?handle=test
+ * @desc 通过handle获取个人信息
+ * @access 接口是公开的
+ */
+router.get('/handle', async (ctx) => {
+  // console.log(handle)
+  const res = await profiles
+    .find({ handle: ctx.query.handle })
+    .populate('user', ['name', 'avatar'])
+  if (res.length < 1) {
+    ctx.status = 404
+    ctx.body = '未找到该用户信息'
+  } else {
+    ctx.status = 200
+    ctx.body = res[0]
+  }
+})
 export default router.routes()

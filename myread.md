@@ -23,9 +23,9 @@
 ----
 # CommonJS 和ES6加载的区别
 1. .mjs文件总是以 ES6 模块加载，.cjs文件总是以 CommonJS 模块加载，.js文件的加载取决于package.json里面type字段的设置；
-2. package.json文件，指明{ type: "module" }或者增加 "exports"：{ 
-    "require": "./index.js"，
-    "import": "./esm/wrapper.js" 
+2. package.json文件，指明{ type: "module" }或者增加 "exports":{ 
+    "require":"./index.js",
+    "import":"./esm/wrapper.js" 
 }
 3. 参考http://www.ruanyifeng.com/blog/2020/08/how-nodejs-use-es6-module.html
 4. 一个项目尽量避免混用二者

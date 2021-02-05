@@ -128,7 +128,7 @@ router.post(
  */
 router.get('/handle', async (ctx) => {
   // console.log(handle)
-  const res = await profiles
+  await profiles
     .find({ handle: ctx.query.handle })
     .populate('user', ['name', 'avatar'])
   if (res.length < 1) {
@@ -139,4 +139,44 @@ router.get('/handle', async (ctx) => {
     ctx.body = res[0]
   }
 })
+/**
+ * @route post api/profiles/experience
+ * @desc 个人工作经验接口
+ * @access 接口是私有的
+ */
+router.post(
+  '/experience',
+  passport.authenticate('jwt', { session: false }),
+  async (ctx) => {
+    // const { errors, isValid } = validateProfile(ctx.request.body)
+    // if (!isValid) {
+    //   ctx.status = 400
+    //   ctx.body = { meta: { status: 400, msg: errors }, data: null }
+    //   return
+    // }
+    const profileFields = { experience: [] }
+    const profile = await profiles.find({ user: ctx.state.user.id })
+    if (profile.length > 0) {
+      const newExp = {
+        title: ctx.request.body.title,
+        company: ctx.request.body.company,
+        from: ctx.request.body.from,
+      }
+      // console.log(profile)
+      //  profileFields.experience.push(newExp)
+      profileFields.experience.unshift(newExp)
+      const profiledUpdate = await profiles.findOneAndUpdate(
+        { user: ctx.state.user.id },
+        { $set: profileFields },
+        { new: true }
+      )
+      ctx.status = 201
+      ctx.body = {
+        meta: { status: 201, msg: '工作经历更新完成' },
+        data: profiledUpdate,
+      }
+      // console.log(profiledUpdate)
+    }
+  }
+)
 export default router.routes()

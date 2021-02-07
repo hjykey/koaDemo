@@ -141,7 +141,7 @@ router.get('/handle', async (ctx) => {
 })
 /**
  * @route post api/profiles/experience
- * @desc 个人工作经验接口
+ * @desc 添加个人工作经验接口
  * @access 接口是私有的
  */
 router.post(
@@ -165,18 +165,67 @@ router.post(
       // console.log(profile)
       //  profileFields.experience.push(newExp)
       profileFields.experience.unshift(newExp)
-      const profiledUpdate = await profiles.findOneAndUpdate(
+      const profiledUpdate = await profiles.updateOne(
         { user: ctx.state.user.id },
-        { $set: profileFields },
-        { new: true }
+        { $push: { experience: profileFields.experience } },
+        { $sort: 1 }
       )
-      ctx.status = 201
-      ctx.body = {
-        meta: { status: 201, msg: '工作经历更新完成' },
-        data: profiledUpdate,
+      if (profiledUpdate.ok === 1) {
+        const profile = await profiles
+          .find({ user: ctx.state.user.id })
+          .populate('user', ['name', 'avatar'])
+        if (profile) {
+          ctx.status = 201
+          ctx.body = {
+            meta: { status: 201, msg: '工作经历更新完成' },
+            data: profile,
+          }
+        } else {
+          ctx.status = 404
+          ctx.body = '未找到该用户信息'
+        }
+      } else {
+        ctx.status = 500
+        ctx.body = '服务器错误，更新失败'
       }
       // console.log(profiledUpdate)
+    } else {
+      ctx.status = 404
+      ctx.body = '未找到该用户信息'
     }
   }
 )
+/**
+ * @route delete api/profiles/experience?exp_id
+ * @desc 删除个人工作经验接口
+ * @access 接口是私有的
+ */
+router.delete(
+  '/experience',
+  passport.authenticate('jwt', { session: false }),
+  async (ctx) => {
+    const exp_id = ctx.query.exp_id
+    const profile = await profiles.find({ user: ctx.state.user.id })
+    if (profile[0].experience.length > 0) {
+      //找到要删除的元素下标
+      const removeIndex = profile[0].experience
+        .map((item) => item.id)
+        .indexOf(exp_id)
+      // const removeIndex = profile[0].experience.map((item, index) => {
+      //   if (item.id === exp_id) return index
+      // })
+      //删除,判断大于零时执行，防止-1时删除其他
+      if (removeIndex >= 0) profile[0].experience.splice(removeIndex, 1)
+      // console.log(profile)
+      const res = await profiles.findOneAndUpdate(
+        { user: ctx.state.user.id },
+        { $set: profile[0] },
+        { new: true }
+      )
+      ctx.status = 200
+      ctx.body = res
+    }
+  }
+)
+
 export default router.routes()

@@ -15,9 +15,10 @@ export default (passport) => {
   // 使用passport验证token
   passport.use(
     new JwtStrategy(opts, async function (jwt_payload, done) {
-      // console.log(opts)
+      // console.log(jwt_payload)
       const user = await User.findById(jwt_payload.data.id)
       if (user) {
+        // user会添加到koa Context的state中，state用于通过中间件传递信息和你的前端视图
         return done(null, user, '找到用户')
       } else return done(null, false, '用户不存在')
       //   User.findOne({ id: jwt_payload.sub }, function (err, user) {

@@ -9,14 +9,19 @@ import passport from 'koa-passport'
 import session from 'koa-session'
 import cors from './util/cors.js'
 import passportMidware from './util/passport.js'
+import views from 'koa-views'
 //实例化s
 const app = new koa()
-
+// new Router({ prefix: '/api' })
 const router = new Router()
-router.get('/', async (ctx) => {
+// 参见express这个叫做路由级中间件
+router.get('/', async (ctx, next) => {
   ctx.body = 'this a koa interfaces！'
+  // 后面有router.allowedMethods()中间件，此处的next()可取消
+  // await next()
 })
-//配置路由器地址，在localhost:5000/api/users下找
+//以下是多级路由的用法
+// 第一个参数为路由，第二个参数为中间件，第一个参数不写将配置中间件为所有路由
 router.use('/api/users', user)
 router.use('/api/profiles', profile)
 
@@ -66,9 +71,58 @@ app.use(passport.initialize())
 app.use(passport.session())
 passportMidware(passport)
 
+/**
+ * ejs模板引擎的使用
+ * npm install ejs -s
+ * npm install koa-views
+ * import views form 'koa-views'
+ * 使用ejs引擎
+ * app.use(views(__dirname,{ extension: 'ejs' }))
+ * 用index模板渲染ctx
+ * await ctx.render('index')
+ */
+const render = views(__dirname + '/views', {
+  map: {
+    html: 'underscore',
+  },
+})
+
+//use调用的是一个应用级的中间件，可以匹配所有路由
+// 以下为自定义的一个简单中间件
+//实现调用路由前打印日期功能
+// 不写next（）,后面的中间件将不会执行，如后面的router.routes()和router.allowedMethods()将失效
+app.use(async (ctx, next) => {
+  console.log(new Date())
+  await next()
+})
+//自定义一个处理get方法的中间件，路由为'/test'，
+// 区别于express的写法app.use（path，middleware）
+app.use(async (ctx, next) => {
+  if (ctx.url === '/test' && ctx.method === 'GET') {
+    let html = `
+            <h1>Koa2 request post demo</h1>
+            <form method="POST"  action="/">
+                <p>userName</p>
+                <input name="userName" /> <br/>
+                <p>age</p>
+                <input name="age" /> <br/>
+                <p>webSite</p>
+                <input name='webSite' /><br/>
+                <button type="submit">submit</button>
+            </form>
+        `
+    ctx.body = html
+  } else {
+    //其它请求显示404页面
+    ctx.body = '<h1>404!</h1>'
+  }
+  await next()
+})
+
 //添加路由，use(function),function添加中间件，默认返回this,因此可以链式表达
 //等同于app.use(someMiddleware).use(someOtherMiddleware).listen(3000)
 app.use(router.routes()).use(router.allowedMethods())
+
 //设置端口号
 const port = 5000
 //listen()为 new require('http'或'https').creatServer(app.callback()).listen(port)的语法糖

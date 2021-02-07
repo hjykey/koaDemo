@@ -1,6 +1,6 @@
 import cors from 'koa2-cors'
 
-let allowUrl = ['/api/users'] //允许跨域的地址
+let allowUrl = ['/api'] //允许跨域的地址,只能访问api
 
 //将cors()暴露出去给app.js使用
 export default function () {
@@ -10,6 +10,7 @@ export default function () {
         ctx.url.indexOf('?') >= 0
           ? ctx.url.slice(0, ctx.url.indexOf('?'))
           : ctx.url
+
       if (url.indexOf(allowUrl) >= 0)
         //   return 'http://localhost:8080'; / 这样就能只允许 http://localhost:8080 这个域名的请求了
         return '*'

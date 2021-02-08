@@ -10,6 +10,14 @@ import session from 'koa-session'
 import cors from './util/cors.js'
 import passportMidware from './util/passport.js'
 import views from 'koa-views'
+import serve from 'koa-static'
+// import path from 'path'
+// const __dirname = path.resolve(path.dirname(''))
+// 在ES6中__dirname和__filename已经不可用，新方法如下
+// import { dirname, extname, basename } from 'path'
+// import { fileURLToPath, pathToFileURL } from 'url'
+// const __dirname = dirname(fileURLToPath(import.meta.url))
+// console.log(basename(fileURLToPath(import.meta.url)))
 //实例化s
 const app = new koa()
 // new Router({ prefix: '/api' })
@@ -26,6 +34,8 @@ router.use('/api/users', user)
 router.use('/api/profiles', profile)
 
 app.use(bodyparser())
+//使用static中间件管理静态资源，路由时会先经过static中间件在static文件夹下寻找
+app.use(serve('./static'))
 
 // 连接数据库，URL以mongodb:// + [用户名:密码@] +数据库地址[:端口] + 数据库名。（默认端口27017）
 // 连接mongodb数据库的链接解析器会在未来移除，要使用新的解析器，通过配置{ useNewUrlParser:true }来连接 ；其他警告参考：https://mongoosejs.com/docs/deprecations.html
@@ -72,7 +82,7 @@ app.use(passport.session())
 passportMidware(passport)
 
 /**
- * ejs模板引擎的使用
+ * ejs模板引擎的使用（引擎有jade、ejs、nunjucks、art-template等，art-template由鹅厂出品，速度较快）
  * npm install ejs -s
  * npm install koa-views
  * import views form 'koa-views'
@@ -81,10 +91,19 @@ passportMidware(passport)
  * 用index模板渲染ctx
  * await ctx.render('index')
  */
-const render = views(__dirname + '/views', {
-  map: {
-    html: 'underscore',
-  },
+// app.use(views(__dirname + '/views', {  map: {html: 'ejs',}})) 写法一,对应index.html
+app.use(views('views', { extension: 'ejs' }))
+
+router.get('/ejs', async (ctx) => {
+  let titleData = '绑定的数据'
+  // views组件里规定autoRender默认为true,rander会自动写入ctx.body,
+  await ctx.render('index', { title: titleData })
+  console.log(ctx.state)
+})
+//配置一个中间件，里面通过ctx.state传递公共信息到每一个路由
+app.use(async (ctx, next) => {
+  ctx.state.addPublicMSG = '公共信息'
+  await next()
 })
 
 //use调用的是一个应用级的中间件，可以匹配所有路由
@@ -113,8 +132,8 @@ app.use(async (ctx, next) => {
         `
     ctx.body = html
   } else {
-    //其它请求显示404页面
-    ctx.body = '<h1>404!</h1>'
+    //其它请求显示404页面,koa本身有出错页面，此处可注释掉
+    // ctx.body = '<h1>404!</h1>'
   }
   await next()
 })
